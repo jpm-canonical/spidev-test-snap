@@ -1,0 +1,35 @@
+name: spidev-test
+base: core24
+adopt-info: spidev-test
+summary: A simple SPI testing application
+description: |
+  This snap is mainly used to verify that SPI hardware is working.
+
+grade: devel
+confinement: strict
+license: GPL-2.0
+
+parts:
+  spidev-test:
+    plugin: dump
+    source: https://github.com/rm-hull/spidev-test.git
+    source-type: git
+    build-environment:
+      - BUILD_METADATA: snap
+    build-packages:
+      - gcc
+    override-pull: |
+      craftctl default
+      
+      # prefix the snap version with the upstream tag, or fall back to the commit hash
+      UPSTREAM_VERSION=$(git describe --exact-match --tags 2> /dev/null || git rev-parse --short HEAD)
+      craftctl set version=$UPSTREAM_VERSION+$BUILD_METADATA
+
+    override-build: |
+      gcc spidev_test.c -o spidev_test
+      cp spidev_test $SNAPCRAFT_PART_INSTALL
+
+apps:
+  spidev-test:
+    plugs: [ spi ]
+    command: spidev_test
